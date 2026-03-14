@@ -14,6 +14,8 @@ minecraft_process = None
 server_path = "serveur"
 eula_file = os.path.join(server_path, "eula.txt")
 minecraft_logs = queue.Queue()
+plugins_path = os.path.join(server_path, "plugins")
+os.makedirs(plugins_path, exist_ok=True)
 
 def eula_accepted():
     if not os.path.exists(eula_file):
@@ -156,18 +158,14 @@ def download_version():
 def upload_jar():
     if "file" not in request.files:
         return jsonify({"status": "error", "message": "Aucun fichier"})
-
     file = request.files["file"]
     if file.filename == "" or not file.filename.endswith(".jar"):
         return jsonify({"status": "error", "message": "Fichier invalide ou non .jar"})
-
     if os.path.exists(server_path):
         shutil.rmtree(server_path)
     os.makedirs(server_path, exist_ok=True)
-
     jar_path = os.path.join(server_path, "server.jar")
     file.save(jar_path)
-
     return jsonify({"status": "success"})
 
 @app.route("/players")
@@ -206,7 +204,6 @@ def player_gamemode():
         return jsonify({"status":"error","message":"Player missing or invalid gamemode"})
     if minecraft_process is None or minecraft_process.poll() is not None:
         return jsonify({"status":"error","message":"Server not running"})
-    # envoie la commande /gamemode <mode> <joueur>
     minecraft_process.stdin.write(f"gamemode {gamemode} {player}\n")
     minecraft_process.stdin.flush()
     return jsonify({"status":"ok"})
@@ -223,12 +220,10 @@ def player_unban():
     return jsonify({"status":"ok"})
 
 def get_connected_players():
-    """Récupère les joueurs actuellement connectés via la commande 'list'."""
     players = []
     if not minecraft_process or minecraft_process.poll() is not None:
         return players
     try:
-        # envoyer 'list'
         minecraft_process.stdin.write("list\n")
         minecraft_process.stdin.flush()
         start_time = time.time()
@@ -246,24 +241,118 @@ def get_connected_players():
 
 @app.route("/players_data")
 def players_data():
-    """Retourne tous les joueurs déjà connectés et les ops actuels."""
-    # OPS
     ops = set()
     ops_file = os.path.join(server_path, "ops.json")
     if os.path.exists(ops_file):
         with open(ops_file) as f:
             data = json.load(f)
             ops = set([o["name"] for o in data])
-
-    # Joueurs connus
     players = []
     usercache_file = os.path.join(server_path, "usercache.json")
     if os.path.exists(usercache_file):
         with open(usercache_file) as f:
             data = json.load(f)
             players = [entry["name"] for entry in data]
-
     return jsonify({"players": players, "ops": list(ops)})
 
+
+@app.route("/plugins")
+def plugins_page():
+    plugins = []
+    for f in os.listdir(plugins_path):
+        if f.endswith(".jar"):
+            plugin_dir = os.path.join(plugins_path, f.replace(".jar",""))
+            config_exists = False
+            config_file = None
+
+            if os.path.isdir(plugin_dir):
+                for item in os.listdir(plugin_dir):
+                    if item.endswith(".yml"):
+                        config_exists = True
+                        config_file = os.path.join(plugin_dir, item)
+                        break
+            else:
+                for item in os.listdir(plugins_path):
+                    if item.endswith(".yml") and f[:-4].lower() in item.lower():
+                        config_exists = True
+                        config_file = os.path.join(plugins_path, item)
+                        break
+
+            plugins.append({
+                "name": f,
+                "config_exists": config_exists,
+                "config_file": config_file
+            })
+    return render_template("plugins.html", plugins=plugins)
+
+@app.route("/plugins_download", methods=["POST"])
+def plugins_download():
+    data = request.json
+    url = data.get("url")
+    if not url:
+        return jsonify({"status":"error","message":"URL manquante"})
+    try:
+        r = requests.get(url, stream=True)
+        r.raise_for_status()
+        filename = url.split("/")[-1]
+        if not filename.endswith(".jar"):
+            return jsonify({"status":"error","message":"Fichier non .jar"})
+        dest = os.path.join(plugins_path, filename)
+        with open(dest,"wb") as f:
+            for chunk in r.iter_content(chunk_size=8192):
+                f.write(chunk)
+        return jsonify({"status":"success"})
+    except Exception as e:
+        return jsonify({"status":"error","message": str(e)})
+
+@app.route("/plugins_upload", methods=["POST"])
+def plugins_upload():
+    if "file" not in request.files:
+        return jsonify({"status":"error","message":"Aucun fichier"})
+    file = request.files["file"]
+    if not file.filename.endswith(".jar"):
+        return jsonify({"status":"error","message":"Fichier non .jar"})
+    dest = os.path.join(plugins_path, file.filename)
+    file.save(dest)
+    return jsonify({"status":"success"})
+
+@app.route("/plugins_config/<plugin_name>", methods=["GET","POST"])
+def plugin_config(plugin_name):
+    if ".." in plugin_name or not plugin_name.endswith(".jar"):
+        return jsonify({"status":"error","message":"Plugin invalide"}),400
+    config_file = os.path.join(plugins_path, plugin_name.replace(".jar",".yml"))
+    if request.method == "POST":
+        content = request.form.get("config", "")
+        with open(config_file,"w") as f:
+            f.write(content)
+        return jsonify({"status":"saved"})
+    else:
+        content = ""
+        if os.path.exists(config_file):
+            with open(config_file) as f:
+                content = f.read()
+        return render_template("plugin_config.html", plugin=plugin_name, config=content)
+
+# --- Supprimer un plugin ---
+@app.route("/plugins_delete", methods=["POST"])
+def plugins_delete():
+    plugin_name = request.json.get("plugin")
+    if not plugin_name:
+        return jsonify({"status":"error","message":"Plugin manquant"})
+    plugin_file = os.path.join(plugins_path, plugin_name)
+    plugin_dir = os.path.join(plugins_path, plugin_name.replace(".jar",""))
+    try:
+        if os.path.exists(plugin_file):
+            os.remove(plugin_file)
+        if os.path.isdir(plugin_dir):
+            shutil.rmtree(plugin_dir)
+        # Supprime aussi le .yml associé si existant
+        for item in os.listdir(plugins_path):
+            if item.endswith(".yml") and plugin_name[:-4].lower() in item.lower():
+                os.remove(os.path.join(plugins_path, item))
+        return jsonify({"status":"success"})
+    except Exception as e:
+        return jsonify({"status":"error","message": str(e)})
+        
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)

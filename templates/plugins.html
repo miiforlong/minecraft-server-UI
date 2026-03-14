@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Minecraft Server UI - Plugins</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="/static/plugins.css">
+    <link rel="icon" sizes="192x192" href="/static/icon.png" type="image/png" />
+    <script defer src="/static/plugins.js"></script>
+</head>
+<body>
+    <iframe id="menu" src="/static/menu.html" width="250" height="2000" frameborder="0" scrolling="no" border="0"></iframe>
+    <h1 id="header">Plugins (beta)</h1>
+    <div id="pluginscontent">
+        <center>
+            <ul>
+            {% for p in plugins %}
+                <li>
+                    {{ p.name }} 
+                    {% if p.config_exists %}
+                        - <a href="/plugins_config/{{p.name}}">Edit config</a>
+                    {% endif %}
+                    - <button onclick="deletePlugin('{{p.name}}')">Delete</button>
+                </li>
+            {% endfor %}
+            </ul>
+
+            <h2>Add a plugin from URL</h2>
+            <input type="text" id="plugin_url" placeholder="Plugin .jar URL">
+            <button onclick="downloadPlugin()">Download</button>
+
+            <h2>Upload a plugin manually</h2>
+            <form id="uploadForm" onsubmit="uploadPlugin(event)" enctype="multipart/form-data">
+                <input type="file" name="file">
+                <button type="submit">Upload</button>
+            </form>
+        </center>
+    </div>
+</body>
+</html>
