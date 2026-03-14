@@ -5,6 +5,8 @@ import threading
 import queue
 import requests
 import shutil
+import json
+import time
 
 app = Flask(__name__)
 
@@ -31,7 +33,6 @@ def index():
 @app.route("/start", methods=["POST"])
 def start_server():
     global minecraft_process
-
     if not eula_accepted():
         return jsonify({"eula": False})
 
@@ -120,20 +121,17 @@ def version_page():
 def download_version():
     data = request.json
     version = data.get("version")
-    force = data.get("force", False)  # flag force
+    force = data.get("force", False)
     if not version:
         return jsonify({"status": "error", "message": "Version manquante"})
 
-    # check if already a server
     if os.path.exists(server_path) and os.listdir(server_path) and not force:
         return jsonify({"status": "exists", "message": "Attention, cela va supprimer votre monde et toutes ses données"})
 
-    # delete old server if there
     if os.path.exists(server_path):
         shutil.rmtree(server_path)
     os.makedirs(server_path, exist_ok=True)
 
-    # download .jar via PaperMC api
     try:
         api_url = f"https://api.papermc.io/v2/projects/paper/versions/{version}"
         res = requests.get(api_url)
@@ -154,30 +152,118 @@ def download_version():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)})
 
-
 @app.route("/upload_jar", methods=["POST"])
 def upload_jar():
     if "file" not in request.files:
         return jsonify({"status": "error", "message": "Aucun fichier"})
 
     file = request.files["file"]
+    if file.filename == "" or not file.filename.endswith(".jar"):
+        return jsonify({"status": "error", "message": "Fichier invalide ou non .jar"})
 
-    if file.filename == "":
-        return jsonify({"status": "error", "message": "Fichier invalide"})
-
-    if not file.filename.endswith(".jar"):
-        return jsonify({"status": "error", "message": "Seulement les fichiers .jar autorisés"})
-
-    # supprimer ancien serveur
     if os.path.exists(server_path):
         shutil.rmtree(server_path)
-
     os.makedirs(server_path, exist_ok=True)
 
     jar_path = os.path.join(server_path, "server.jar")
     file.save(jar_path)
 
     return jsonify({"status": "success"})
-    
+
+@app.route("/players")
+def players_page():
+    return render_template("players.html")
+
+@app.route("/players_op", methods=["POST"])
+def player_op():
+    player = request.json.get("player")
+    op = request.json.get("op", False)
+    if not player:
+        return jsonify({"status":"error","message":"No player"})
+    if minecraft_process is None or minecraft_process.poll() is not None:
+        return jsonify({"status":"error","message":"Server not running"})
+    cmd = f"op {player}" if op else f"deop {player}"
+    minecraft_process.stdin.write(cmd+"\n")
+    minecraft_process.stdin.flush()
+    return jsonify({"status":"ok"})
+
+@app.route("/players_ban", methods=["POST"])
+def player_ban():
+    player = request.json.get("player")
+    if not player:
+        return jsonify({"status":"error","message":"No player"})
+    if minecraft_process is None or minecraft_process.poll() is not None:
+        return jsonify({"status":"error","message":"Server not running"})
+    minecraft_process.stdin.write(f"ban {player}\n")
+    minecraft_process.stdin.flush()
+    return jsonify({"status":"ok"})
+
+@app.route("/players_gamemode", methods=["POST"])
+def player_gamemode():
+    player = request.json.get("player")
+    gamemode = request.json.get("gamemode")
+    if not player or gamemode not in ["survival","creative","adventure","spectator"]:
+        return jsonify({"status":"error","message":"Player missing or invalid gamemode"})
+    if minecraft_process is None or minecraft_process.poll() is not None:
+        return jsonify({"status":"error","message":"Server not running"})
+    # envoie la commande /gamemode <mode> <joueur>
+    minecraft_process.stdin.write(f"gamemode {gamemode} {player}\n")
+    minecraft_process.stdin.flush()
+    return jsonify({"status":"ok"})
+
+@app.route("/players_unban", methods=["POST"])
+def player_unban():
+    player = request.json.get("player")
+    if not player:
+        return jsonify({"status":"error","message":"No player"})
+    if minecraft_process is None or minecraft_process.poll() is not None:
+        return jsonify({"status":"error","message":"Server not running"})
+    minecraft_process.stdin.write(f"pardon {player}\n")
+    minecraft_process.stdin.flush()
+    return jsonify({"status":"ok"})
+
+def get_connected_players():
+    """Récupère les joueurs actuellement connectés via la commande 'list'."""
+    players = []
+    if not minecraft_process or minecraft_process.poll() is not None:
+        return players
+    try:
+        # envoyer 'list'
+        minecraft_process.stdin.write("list\n")
+        minecraft_process.stdin.flush()
+        start_time = time.time()
+        while time.time() - start_time < 1.0:
+            while not minecraft_logs.empty():
+                line = minecraft_logs.get()
+                if "There are" in line and ":" in line:
+                    names = line.split(":")[-1].strip()
+                    players = [n.strip() for n in names.split(",") if n.strip()]
+                    return players
+            time.sleep(0.05)
+    except Exception as e:
+        print("Erreur get_connected_players:", e)
+    return players
+
+@app.route("/players_data")
+def players_data():
+    """Retourne tous les joueurs déjà connectés et les ops actuels."""
+    # OPS
+    ops = set()
+    ops_file = os.path.join(server_path, "ops.json")
+    if os.path.exists(ops_file):
+        with open(ops_file) as f:
+            data = json.load(f)
+            ops = set([o["name"] for o in data])
+
+    # Joueurs connus
+    players = []
+    usercache_file = os.path.join(server_path, "usercache.json")
+    if os.path.exists(usercache_file):
+        with open(usercache_file) as f:
+            data = json.load(f)
+            players = [entry["name"] for entry in data]
+
+    return jsonify({"players": players, "ops": list(ops)})
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)

@@ -1,0 +1,33 @@
+        body { 
+            padding: 20px; 
+            color:#eee;
+        }
+
+        table { 
+            border-collapse: collapse; 
+            width: 600px; 
+            margin-top: 75px;
+        }
+
+        th, td { 
+            border: 1px solid #555; 
+            padding: 8px; 
+            text-align:left;
+        }
+
+        th { 
+            background:#222;
+        }
+
+        button { 
+            padding: 5px 10px; 
+            margin-left:5px;
+            background: white;
+            color: #2563eb;
+            border: 2px solid #2563eb;
+            border-radius: 6px;
+        }
+
+        select { 
+            padding: 3px;
+        }

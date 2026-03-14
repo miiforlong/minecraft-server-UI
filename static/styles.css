@@ -5,11 +5,11 @@
 
 body {
     background-color: #2D3943;
+    font-family: 'fredoka', sans-serif;
 }
 
 a, h1, h2, h3, h3, p, button, label {
     color: white;
-    font-family: 'fredoka', sans-serif;
 }
 
 #header {
@@ -79,4 +79,8 @@ a, h1, h2, h3, h3, p, button, label {
     top: 0px;
     bottom: 0px;
     left: 0px;
+}
+
+button {
+    font-family: 'fredoka', sans-serif;
 }

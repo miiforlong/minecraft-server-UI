@@ -21,4 +21,5 @@ input[type=text] {
     left: 50%;
     transform: translateX(-50%);
     position: relative;
+    z-index: 2;
 }

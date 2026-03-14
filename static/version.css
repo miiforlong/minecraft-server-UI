@@ -10,19 +10,19 @@
         }
         #versiontext {
             left: 50%;
-            top: 44%;
+            top: 34%;
             position: absolute;
             transform: translate(-50%, -50%);
         }
         #versiondownloader {
             left: 50%;
-            top: 50%;
+            top: 40%;
             position: absolute;
             transform: translate(-50%, -50%);
         }
         #customjar {
             left: 50%;
-            top: 65%;
+            top: 55%;
             position: absolute;
             transform: translate(-50%, -50%);
         }
