@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Minecraft Server UI - Version</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="/static/version.css">
+    <link rel="icon" sizes="192x192" href="/static/icon.png" type="image/png" />
+    <script defer src="/static/version.js"></script>
+</head>
+<body>
+    <iframe id="menu" src="/static/menu.html" width="250" height="2000" frameborder="0" scrolling="no" border="0"></iframe>
+    <h1 id="header">Minecraft Server Version</h1>
+    <div id="versiontext"><p>To download a new version to the server, put the version number below then hit "Download" :</p></div>
+    <div id="versiondownloader">
+        <input type="text" id="version" placeholder="e.g : 1.19.2">
+        <button id="downloadBtn" type="button">Download</button>
+    </div>
+    <div id="customjar">
+        <center>
+            <hr style="width:300px;margin:30px 0;">
+
+            <h2>Upload your own server file</h2>
+
+            <input type="file" id="jarFile" accept=".jar">
+            <button id="uploadBtn" type="button">Upload Jar</button>
+        </center>
+    </div>
+    <div id="status"></div>
+
+    <div id="popup">
+        <div>Warning ! downloading a new version will delete all your config and world !</div>
+        <div>
+            <button id="confirmBtn">Confirm</button>
+            <button id="cancelBtn">Cancel</button>
+        </div>
+    </div>
+</body>
+</html>

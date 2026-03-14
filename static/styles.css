@@ -7,18 +7,20 @@ body {
     background-color: #2D3943;
 }
 
-a, h1, h2, h3, h3, p, button {
+a, h1, h2, h3, h3, p, button, label {
     color: white;
     font-family: 'fredoka', sans-serif;
 }
 
 #header {
+    top: 10px;
+    margin-bottom: 20px;
     left: 50%;
     transform: translate(-50%, -50%);
     position: absolute;
 }
 
-#startserver{
+#startserver {
     top: 50%;
     left: 50%;
     position: absolute;
@@ -33,7 +35,48 @@ a, h1, h2, h3, h3, p, button {
     transition: 0.2s;
 }
 
-#startserver:hover{
+#acceptEula {
+    padding: 10px 18px;
+    font-size: 16px;
+    background: white;
+    color: #2563eb;
+    border: 2px solid #2563eb;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.2s;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    position: relative;
+    margin-top: 25px;
+}
+
+
+#startserver:hover, #acceptEula:hover {
     background: #2563eb;
     color: white;
+}
+
+#eulaPopup {
+    background-color: gray;
+    top: 50%;
+    left: 50%;
+    position: absolute;
+    transform: translate(-50%, -50%);
+    border-radius: 6px;
+    padding: 20px;
+}
+
+.menucontainer {
+    min-height: 50px;
+    background-color: rgba(10, 25, 50, 0.315);
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  }
+
+#menu {
+    z-index: 2;
+    position: fixed;
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
 }

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Minecraft Server UI - config</title>
+    <link rel="icon" sizes="192x192" href="/static/icon.png" type="image/png" />
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="/static/config.css">
+    <script defer src="/static/config.js"></script>
+</head>
+    <body>
+        <iframe id="menu" src="/static/menu.html" width="250" height="2000" frameborder="0" scrolling="no" border="0"></iframe>
+        <h1 id="header">Minecraft Server configuration</h1>
+        <br>
+        <form id="configForm"><center>
+
+            {% for key,value in props.items() %}
+
+            <div class="row">
+                <label>{{key}}</label><br>
+
+                {% if value == "true" or value == "false" %}
+                    <input type="checkbox" name="{{key}}" {% if value == "true" %}checked{% endif %}>
+                {% else %}
+                    <input type="text" name="{{key}}" value="{{value}}">
+                {% endif %}
+            </div>
+
+            <br><hr><br>
+
+            {% endfor %}
+
+            <br>
+            </center>
+
+            <button id="saveconfig" type="submit"><b>Save configuration</b></button>
+
+        </form>
+    </body>
+</html>
