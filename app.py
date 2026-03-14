@@ -39,15 +39,34 @@ def start_server():
         return jsonify({"eula": False})
 
     if minecraft_process is None or minecraft_process.poll() is not None:
-        minecraft_process = subprocess.Popen(
-            ["java", "-Xmx2G", "-jar", "server.jar", "nogui"],
-            cwd=server_path,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            bufsize=1
-        )
+        try:
+            minecraft_process = subprocess.Popen(
+                ["java", "-Xmx2G", "-jar", "server.jar", "nogui"],
+                cwd=server_path,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                bufsize=1
+            )
+        except FileNotFoundError:
+            # install java if not already installed (ubuntu only)
+            try:
+                subprocess.run(["sudo", "apt", "update"], check=True)
+                subprocess.run(["sudo", "apt", "install", "-y", "openjdk-17-jdk"], check=True)
+                # restart after java installed
+                minecraft_process = subprocess.Popen(
+                    ["java", "-Xmx2G", "-jar", "server.jar", "nogui"],
+                    cwd=server_path,
+                    stdin=subprocess.PIPE,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    bufsize=1
+                )
+            except Exception as e:
+                return jsonify({"status":"error","message": f"Impossible d'installer Java : {e}"})
+
         threading.Thread(target=read_stdout, args=(minecraft_process,), daemon=True).start()
 
     return jsonify({"eula": True})
