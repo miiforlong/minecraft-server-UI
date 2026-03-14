@@ -1,0 +1,39 @@
+@font-face {
+    font-family: 'fredoka';
+    src: url('/static/fredoka.ttf') format('truetype');
+}
+
+body {
+    background-color: #2D3943;
+}
+
+a, h1, h2, h3, h3, p, button {
+    color: white;
+    font-family: 'fredoka', sans-serif;
+}
+
+#header {
+    left: 50%;
+    transform: translate(-50%, -50%);
+    position: absolute;
+}
+
+#startserver{
+    top: 50%;
+    left: 50%;
+    position: absolute;
+    transform: translate(-50%, -50%);
+    padding: 10px 18px;
+    font-size: 16px;
+    background: white;
+    color: #2563eb;
+    border: 2px solid #2563eb;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+#startserver:hover{
+    background: #2563eb;
+    color: white;
+}
