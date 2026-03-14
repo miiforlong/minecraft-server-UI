@@ -1,4 +1,4 @@
-# minecraft-server-UI
+# Minecraft Server UI
 
 How to set up : 
 
