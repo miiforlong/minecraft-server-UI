@@ -352,7 +352,6 @@ def plugin_config(plugin_name):
                 content = f.read()
         return render_template("plugin_config.html", plugin=plugin_name, config=content)
 
-# --- Supprimer un plugin ---
 @app.route("/plugins_delete", methods=["POST"])
 def plugins_delete():
     plugin_name = request.json.get("plugin")
