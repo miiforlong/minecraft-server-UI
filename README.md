@@ -18,4 +18,4 @@ How to set up :
 
 - put all the files in a folder in your server
 - run app.py
-- go the the web interface it indicates you (by default : "serverip:5000")
+- go the the web interface it indicates you (by default : "serverip:5000", you can change this at the end of app.py, just replace "5000" by the port of your choice)
