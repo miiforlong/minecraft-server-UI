@@ -10,6 +10,7 @@ requirements :
 
 - last version Python
 - flask (python requirement)
+- psutil (python requirement)
 - java
 
 _________________________________
