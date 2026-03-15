@@ -7,6 +7,7 @@ import requests
 import shutil
 import json
 import time
+import psutil
 
 app = Flask(__name__)
 
@@ -50,11 +51,10 @@ def start_server():
                 bufsize=1
             )
         except FileNotFoundError:
-            # install java if not already installed (ubuntu only)
             try:
                 subprocess.run(["sudo", "apt", "update"], check=True)
                 subprocess.run(["sudo", "apt", "install", "-y", "openjdk-17-jdk"], check=True)
-                # restart after java installed
+
                 minecraft_process = subprocess.Popen(
                     ["java", "-Xmx2G", "-jar", "server.jar", "nogui"],
                     cwd=server_path,
@@ -274,7 +274,6 @@ def players_data():
             players = [entry["name"] for entry in data]
     return jsonify({"players": players, "ops": list(ops)})
 
-
 @app.route("/plugins")
 def plugins_page():
     plugins = []
@@ -364,13 +363,49 @@ def plugins_delete():
             os.remove(plugin_file)
         if os.path.isdir(plugin_dir):
             shutil.rmtree(plugin_dir)
-        # Supprime aussi le .yml associé si existant
         for item in os.listdir(plugins_path):
             if item.endswith(".yml") and plugin_name[:-4].lower() in item.lower():
                 os.remove(os.path.join(plugins_path, item))
         return jsonify({"status":"success"})
     except Exception as e:
         return jsonify({"status":"error","message": str(e)})
-        
+
+def get_system_stats():
+    process = psutil.Process(os.getpid())
+    cpu_script = process.cpu_percent(interval=0.2)
+
+    ram = psutil.virtual_memory()
+
+    cpu_temp = None
+    try:
+        temps = psutil.sensors_temperatures()
+        if temps:
+            for name, entries in temps.items():
+                for entry in entries:
+                    cpu_temp = entry.current
+                    break
+                if cpu_temp:
+                    break
+    except:
+        pass
+
+    if cpu_temp is None:
+        thermal = "/sys/class/thermal/thermal_zone0/temp"
+        if os.path.exists(thermal):
+            with open(thermal) as f:
+                cpu_temp = round(int(f.read())/1000,1)
+
+    return {
+        "cpu_temp": cpu_temp,
+        "cpu_script_percent": cpu_script,
+        "ram_percent": ram.percent,
+        "ram_used_gb": round(ram.used/(1024**3),2),
+        "ram_total_gb": round(ram.total/(1024**3),2)
+    }
+
+@app.route("/system_stats")
+def system_stats():
+    return jsonify(get_system_stats())
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)

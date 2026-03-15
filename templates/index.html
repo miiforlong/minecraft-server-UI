@@ -3,10 +3,18 @@
     <head>
         <title>Minecraft Server UI</title>
         <link rel="stylesheet" href="/static/styles.css">
+        <link rel="stylesheet" href="/static/index.css">
         <link rel="icon" sizes="192x192" href="/static/icon.png" type="image/png" />
-        <script defer src="/static/script.js"></script>
+        <script defer src="/static/index.js"></script>
     </head>
     <body>
+        <div id="stats">
+            <center><h3>Server stats :</h3></center>
+            <p>CPU usage : <span id="cpu_usage">0</span>%</p>
+            <p>CPU temperature : <span id="cpu_temp">0</span>°C</p>
+            <p>RAM usage : <span id="ram_percent">0</span>%</p>
+            <p>RAM used : <span id="ram_used">0</span> / <span id="ram_total">0</span> GB</p>
+        </div>
         <h1 id="header">Minecraft Server UI</h1>
         <iframe id="menu" src="/static/menu.html" width="250" height="2000" frameborder="0" scrolling="no" border="0"></iframe>
         <button id="startserver">Start the server</button>
