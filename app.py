@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, redirect, session, url_for
 import subprocess
 import os
 import threading
@@ -8,15 +8,50 @@ import shutil
 import json
 import time
 import psutil
+import secrets
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", secrets.token_hex(32))
 
 minecraft_process = None
 server_path = "serveur"
 eula_file = os.path.join(server_path, "eula.txt")
 minecraft_logs = queue.Queue()
 plugins_path = os.path.join(server_path, "plugins")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+password_file = os.path.join(BASE_DIR, "pswd.txt")
 os.makedirs(plugins_path, exist_ok=True)
+
+def read_password_file():
+    if not os.path.exists(password_file):
+        with open(password_file, "w", encoding="utf-8") as f:
+            f.write("Null")
+        return "Null"
+
+    with open(password_file, encoding="utf-8-sig") as f:
+        value = f.read().strip()
+
+    return value or "Null"
+
+def password_required():
+    return read_password_file() != "Null"
+
+def is_authenticated():
+    return session.get("authenticated", False)
+
+@app.before_request
+def require_login():
+    if not password_required():
+        return None
+
+    allowed_endpoints = {"login", "login_submit"}
+    if request.endpoint in allowed_endpoints:
+        return None
+
+    if not is_authenticated():
+        if request.path.startswith("/api/") or request.is_json:
+            return jsonify({"status": "unauthorized"}), 401
+        return redirect(url_for("login"))
 
 def eula_accepted():
     if not os.path.exists(eula_file):
@@ -28,6 +63,26 @@ def read_stdout(proc):
     """Lit stdout du serveur et stocke les lignes dans une queue."""
     for line in proc.stdout:
         minecraft_logs.put(line.strip())
+
+@app.route("/login", methods=["GET"])
+def login():
+    if not password_required():
+        return redirect(url_for("index"))
+    if is_authenticated():
+        return redirect(url_for("index"))
+    return render_template("login.html", error=None)
+
+@app.route("/login", methods=["POST"])
+def login_submit():
+    if not password_required():
+        return redirect(url_for("index"))
+
+    password = request.form.get("password", "")
+    if password == read_password_file():
+        session["authenticated"] = True
+        return redirect(url_for("index"))
+
+    return render_template("login.html", error="Mot de passe incorrect.")
 
 @app.route("/")
 def index():
