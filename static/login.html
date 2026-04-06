@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Connexion</title>
+        <style>
+            body {
+                margin: 0;
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-family: Arial, sans-serif;
+                background: linear-gradient(135deg, #1e293b, #0f172a);
+                color: #f8fafc;
+            }
+
+            .login-box {
+                width: min(90vw, 360px);
+                padding: 32px;
+                border-radius: 18px;
+                background: rgba(15, 23, 42, 0.92);
+                box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+            }
+
+            h1 {
+                margin-top: 0;
+                margin-bottom: 10px;
+                font-size: 28px;
+                text-align: center;
+            }
+
+            p {
+                margin-bottom: 20px;
+                text-align: center;
+                color: #cbd5e1;
+            }
+
+            input {
+                width: 100%;
+                padding: 12px 14px;
+                border: 1px solid #334155;
+                border-radius: 10px;
+                box-sizing: border-box;
+                background: #0f172a;
+                color: #f8fafc;
+                margin-bottom: 14px;
+            }
+
+            button {
+                width: 100%;
+                padding: 12px 14px;
+                border: none;
+                border-radius: 10px;
+                background: #22c55e;
+                color: #052e16;
+                font-size: 16px;
+                font-weight: bold;
+                cursor: pointer;
+            }
+
+            .error {
+                margin-top: 14px;
+                color: #fca5a5;
+                text-align: center;
+            }
+        </style>
+    </head>
+    <body>
+        <form class="login-box" method="post" action="/login">
+            <h1>Connexion</h1>
+            <p>Entrez le mot de passe pour acceder a l'interface.</p>
+            <input type="password" name="password" placeholder="Mot de passe" autocomplete="current-password" required>
+            <button type="submit">Se connecter</button>
+            {% if error %}
+            <div class="error">{{ error }}</div>
+            {% endif %}
+        </form>
+    </body>
+</html>
