@@ -4,12 +4,14 @@
 }
 
 body {
-    background-color: #2D3943;
+    background-image: url('dirt.webp'); 
+    background-size: 50px 50px; 
+    background-repeat: repeat; 
     font-family: 'fredoka', sans-serif;
 }
 
 a, h1, h2, h3, h3, p, button, label {
-    color: white;
+    color: rgba(255, 255, 255, 0.625)
 }
 
 #header {
@@ -27,21 +29,25 @@ a, h1, h2, h3, h3, p, button, label {
     transform: translate(-50%, -50%);
     padding: 10px 18px;
     font-size: 16px;
-    background: white;
-    color: #2563eb;
-    border: 2px solid #2563eb;
+    background: rgba(255, 255, 255, 0.307);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    color: #fefeff;
+    border: 2px solid #ffffff;
     border-radius: 6px;
     cursor: pointer;
-    transition: 0.2s;
+    transition: 0.5s;
 }
 
 #acceptEula {
     padding: 10px 18px;
     font-size: 16px;
-    background: white;
-    color: #2563eb;
-    border: 2px solid #2563eb;
+    background: rgba(255, 255, 255, 0);
+    color: #ffffff;
+    border: 2px solid #fbfbfc;
     border-radius: 6px;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
     cursor: pointer;
     transition: 0.2s;
     left: 50%;
@@ -57,9 +63,12 @@ a, h1, h2, h3, h3, p, button, label {
 }
 
 #eulaPopup {
-    background-color: gray;
+    background-color: rgba(255, 255, 255, 0.216);
     top: 50%;
     left: 50%;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    border: 2px solid #fbfbfc;
     position: absolute;
     transform: translate(-50%, -50%);
     border-radius: 6px;
@@ -68,8 +77,10 @@ a, h1, h2, h3, h3, p, button, label {
 
 .menucontainer {
     min-height: 50px;
-    background-color: rgba(10, 25, 50, 0.315);
+    background-color: rgba(0, 0, 0, 0.121);
     border-radius: 10px;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   }
 
