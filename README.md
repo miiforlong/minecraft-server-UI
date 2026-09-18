@@ -16,7 +16,7 @@ requirements :
 Example installation command : 
 
 ```bash
-sudo apt update && sudo apt install -y python3 python3-pip python3-venv openjdk-21-jdk && python3 -m pip install flask psutil --break-system-packages
+sudo apt update && sudo apt install -y python3 python3-pip python3-venv openjdk-21-jdk && python3 -m pip install -r requirements.txt --break-system-packages
 ```
 
 _________________________________
