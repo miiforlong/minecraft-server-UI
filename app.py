@@ -198,35 +198,77 @@ def download_version():
     data = request.json
     version = data.get("version")
     force = data.get("force", False)
+
     if not version:
-        return jsonify({"status": "error", "message": "Version manquante"})
+        return jsonify({
+            "status": "error",
+            "message": "Version manquante"
+        })
 
     if os.path.exists(server_path) and os.listdir(server_path) and not force:
-        return jsonify({"status": "exists", "message": "Attention, cela va supprimer votre monde et toutes ses données"})
-
-    if os.path.exists(server_path):
-        shutil.rmtree(server_path)
-    os.makedirs(server_path, exist_ok=True)
+        return jsonify({
+            "status": "exists",
+            "message": "Attention, cela va supprimer votre monde et toutes ses données"
+        })
 
     try:
-        api_url = f"https://api.papermc.io/v2/projects/paper/versions/{version}"
-        res = requests.get(api_url)
-        res.raise_for_status()
-        builds = res.json().get("builds", [])
-        if not builds:
-            return jsonify({"status": "error", "message": "Version invalide"})
-        latest_build = max(builds)
-        jar_url = f"https://api.papermc.io/v2/projects/paper/versions/{version}/builds/{latest_build}/downloads/paper-{version}-{latest_build}.jar"
+        # Charger paper-versions.json
+        json_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            "paper-versions.json"
+        )
 
+        with open(json_path, "r", encoding="utf-8") as f:
+            paper_data = json.load(f)
+
+        # Récupérer directement le lien de téléchargement
+        versions = paper_data.get("versions", {})
+        jar_url = versions.get(version)
+
+        if not jar_url:
+            return jsonify({
+                "status": "error",
+                "message": f"Version invalide ou indisponible : {version}"
+            })
+
+        # Supprimer l'ancien serveur
+        if os.path.exists(server_path):
+            shutil.rmtree(server_path)
+
+        os.makedirs(server_path, exist_ok=True)
+
+        # Télécharger le .jar
         jar_path = os.path.join(server_path, "server.jar")
+
         r = requests.get(jar_url, stream=True)
         r.raise_for_status()
+
         with open(jar_path, "wb") as f:
             for chunk in r.iter_content(chunk_size=8192):
-                f.write(chunk)
-        return jsonify({"status": "success"})
+                if chunk:
+                    f.write(chunk)
+
+        return jsonify({
+            "status": "success"
+        })
+
+    except FileNotFoundError:
+        return jsonify({
+            "status": "error",
+            "message": "Le fichier paper-versions.json est introuvable"
+        })
+
+    except requests.RequestException as e:
+        return jsonify({
+            "status": "error",
+            "message": f"Erreur lors du téléchargement : {str(e)}"
+        })
+
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)})
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        })
 
 @app.route("/upload_jar", methods=["POST"])
 def upload_jar():
