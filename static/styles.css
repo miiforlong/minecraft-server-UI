@@ -77,7 +77,8 @@ a, h1, h2, h3, h3, p, button, label {
 
 .menucontainer {
     min-height: 50px;
-    background-color: rgba(0, 0, 0, 0.121);
+    background: rgba(255, 255, 255, 0.307);
+    border : 2px solid #fbfbfc;
     border-radius: 10px;
     backdrop-filter: blur(2px);
     -webkit-backdrop-filter: blur(2px);
