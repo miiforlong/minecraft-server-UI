@@ -35,7 +35,36 @@ _________________________________
 
 How to set up : 
 
-- put all the files in a folder in your server
-- run app.py
+- put all the files in a folder in your server :
+
+#### update
+```bash
+sudo apt update
+```
+
+#### install git
+```bash
+sudo apt install git -y
+```
+
+#### clone the repo
+```bash
+git clone https://github.com/miiforlong/minecraft-server-UI.git
+```
+
+#### go in the folder
+```bash
+cd minecraft-server-UI
+```
+
+- start the server :
+  
+```bash
+python3 app.py
+```
+
 - go the the web interface it indicates you (by default : "serverip:5000", you can change this at the end of app.py, just replace "5000" by the port of your choice)
+
+<img width="571" height="137" alt="image" src="https://github.com/user-attachments/assets/e26a996f-4c68-4f97-b30c-bcb5296fe057" />
+  
 - if you wanna put a password edit "pswd.txt" from "Null" to any password so you can put it online securely
