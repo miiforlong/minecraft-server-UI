@@ -33,7 +33,7 @@ python3 -m pip install -r requirements.txt --break-system-packages
 
 _________________________________
 
-How to set up : 
+How to set up (linux only) : 
 
 - put all the files in a folder in your server :
 
