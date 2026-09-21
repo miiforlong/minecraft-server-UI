@@ -1,9 +1,10 @@
 #log { 
     z-index: 1;
-    left: 59%;
+    left: 52%;
+    align-items: center;
     transform: translateX(-50%);
     margin-top: 70px;
-    width: 80%; 
+    width: 60%; 
     height:70vh; 
     background:#111; 
     padding:10px; 
@@ -15,10 +16,10 @@
 }
 
 input[type=text] { 
-    width:80%; 
+    width:60%; 
     padding:6px; 
     margin-top:10px; 
-    left: 50%;
+    left: 52%;
     transform: translateX(-50%);
     position: relative;
     z-index: 2;

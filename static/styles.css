@@ -75,6 +75,13 @@ a, h1, h2, h3, h3, p, button, label {
     padding: 20px;
 }
 
+#menuicon, #configicon, #consoleicon, #versionicon, #playersicon, #pluginsicon {
+    display: flex;
+    align-items: center;
+    gap: 10px;  
+    text-decoration: none;
+}
+
 .menucontainer {
     min-height: 50px;
     background: rgba(255, 255, 255, 0.307);
