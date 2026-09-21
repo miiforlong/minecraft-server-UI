@@ -12,6 +12,7 @@ requirements :
 - flask (python requirement)
 - psutil (python requirement)
 - java
+  
 
 Requirements installation (linux only) : 
 
