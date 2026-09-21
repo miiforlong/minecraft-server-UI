@@ -13,10 +13,21 @@ requirements :
 - psutil (python requirement)
 - java
 
-Example installation command : 
+Requirements installation (linux only) : 
 
+#### update
 ```bash
-sudo apt update && sudo apt install -y python3 python3-pip python3-venv openjdk-21-jdk && python3 -m pip install -r requirements.txt --break-system-packages
+sudo apt update
+```
+
+#### install python, pip, venv and java 21 (install the java that matches your minecraft version)
+```bash
+sudo apt install -y python3 python3-pip python3-venv openjdk-21-jdk
+```
+
+#### install the python requirements
+```bash
+python3 -m pip install -r requirements.txt --break-system-packages
 ```
 
 _________________________________
