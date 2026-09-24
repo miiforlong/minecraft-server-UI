@@ -58,8 +58,7 @@ a, h1, h2, h3, h3, p, button, label {
 
 
 #startserver:hover, #acceptEula:hover {
-    background: #2563eb;
-    color: white;
+    background-color: rgba(255, 255, 255, 0.389);
 }
 
 #eulaPopup {

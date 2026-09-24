@@ -1,5 +1,6 @@
-const downloadBtn = document.getElementById("downloadBtn");
-const versionInput = document.getElementById("version");
+const versionsGrid = document.getElementById("versionsGrid");
+const loading = document.getElementById("loading");
+const errorContainer = document.getElementById("errorContainer");
 const statusDiv = document.getElementById("status");
 const popup = document.getElementById("popup");
 const confirmBtn = document.getElementById("confirmBtn");
@@ -7,14 +8,97 @@ const cancelBtn = document.getElementById("cancelBtn");
 const uploadBtn = document.getElementById("uploadBtn");
 const jarFile = document.getElementById("jarFile");
 
-async function download(version, force=false) {
+let selectedVersion = null;
+
+// Load available versions when the page is ready
+document.addEventListener("DOMContentLoaded", loadVersions);
+
+async function loadVersions() {
     try {
-        statusDiv.textContent = "Downloading...";
+        loading.style.display = "block";
+        versionsGrid.innerHTML = "";
+        errorContainer.innerHTML = "";
+
+        const response = await fetch("/get_versions");
+        const data = await response.json();
+
+        if (data.status !== "success") {
+            throw new Error(data.message || "Error while loading versions");
+        }
+
+        const versions = data.versions || [];
+        loading.style.display = "none";
+
+        if (versions.length === 0) {
+            errorContainer.innerHTML = "<div class='error-message'>No versions available</div>";
+            return;
+        }
+
+        // Display available versions
+        versions.forEach(version => {
+            const versionBlock = document.createElement("div");
+            versionBlock.className = "version-block";
+            versionBlock.innerHTML = `
+                <div class="version-number">${version}</div>
+                <div class="version-label">PaperMC</div>
+            `;
+
+            versionBlock.addEventListener("click", () => selectVersion(version));
+            versionsGrid.appendChild(versionBlock);
+        });
+
+        // Add the custom JAR upload block
+        const uploadBlock = document.createElement("div");
+        uploadBlock.className = "version-block";
+        uploadBlock.id = "uploadJarBlock";
+        uploadBlock.innerHTML = `
+            <div class="upload-icon"></div>
+            <div class="version-label">📤 Import Custom JAR</div>
+        `;
+
+        uploadBlock.addEventListener("click", triggerFileInput);
+        versionsGrid.appendChild(uploadBlock);
+
+    } catch (err) {
+        loading.style.display = "none";
+        errorContainer.innerHTML = `<div class='error-message'>Error: ${err.message}</div>`;
+        console.error("Error:", err);
+    }
+}
+
+function selectVersion(version) {
+    selectedVersion = version;
+    popup.style.display = "flex";
+}
+
+confirmBtn.addEventListener("click", () => {
+    popup.style.display = "none";
+
+    if (selectedVersion) {
+        downloadVersion(selectedVersion, true);
+    }
+});
+
+cancelBtn.addEventListener("click", () => {
+    popup.style.display = "none";
+    selectedVersion = null;
+    showStatus("Download cancelled.", "info");
+});
+
+async function downloadVersion(version, force = false) {
+    try {
+        statusDiv.className = "";
+        statusDiv.textContent = "Download in progress...";
 
         const response = await fetch("/download_version", {
             method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({version, force})
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                version,
+                force
+            })
         });
 
         const data = await response.json();
@@ -25,66 +109,62 @@ async function download(version, force=false) {
         }
 
         if (data.status === "success") {
-            statusDiv.textContent = "Download finished !";
+            showStatus("Download completed!", "success");
+            selectedVersion = null;
 
             setTimeout(() => {
-                alert("Téléchargement terminé !");
-            }, 100);
+                alert("Version " + version + " downloaded successfully!");
+            }, 500);
 
             return;
         }
 
-        statusDiv.textContent = "Error : " + data.message;
-        alert("Erreur : " + data.message);
+        showStatus("Error: " + data.message, "error");
+        alert("Error: " + data.message);
 
     } catch (err) {
-        statusDiv.textContent = "Error : " + err;
-        alert("Erreur réseau.");
+        showStatus("Network error", "error");
+        alert("Network error: " + err.message);
     }
 }
 
-downloadBtn.addEventListener("click", () => {
-    const version = versionInput.value.trim();
-    if(version) download(version);
-});
+function triggerFileInput() {
+    jarFile.click();
+}
 
-confirmBtn.addEventListener("click", () => {
-    popup.style.display = "none";
-    const version = versionInput.value.trim();
-    if(version) download(version, true);
-});
+jarFile.addEventListener("change", async (e) => {
+    const file = e.target.files[0];
 
-cancelBtn.addEventListener("click", () => {
-    popup.style.display = "none";
-    statusDiv.textContent = "Download cancelled.";
-});
-
-
-//upload custom jar
-
-uploadBtn.addEventListener("click", async () => {
-
-    if (!jarFile.files.length) {
-        alert("Chose a .jar file");
+    if (!file) {
         return;
     }
-
-    const file = jarFile.files[0];
 
     if (!file.name.endsWith(".jar")) {
-        alert("the file needs to be a .jar");
+        showStatus("The file must be a .jar file", "error");
+        alert("The file must be a .jar file");
         return;
     }
 
-    if (!confirm("Warning: This will delete your world and all its data. Continue?"))
+    if (!confirm(
+        "Warning:\n" +
+        "This will delete all your configuration files and your world!\n\n" +
+        "Continue?"
+    )) {
+        jarFile.value = "";
         return;
+    }
 
-    const formData = new FormData();
-    formData.append("file", file);
+    uploadJar(file);
+});
 
-    statusDiv.textContent = "Uploading jar...";
-
+async function uploadJar(file) {
     try {
+        statusDiv.className = "";
+        statusDiv.textContent = "Uploading JAR file...";
+
+        const formData = new FormData();
+        formData.append("file", file);
+
         const response = await fetch("/upload_jar", {
             method: "POST",
             body: formData
@@ -93,16 +173,28 @@ uploadBtn.addEventListener("click", async () => {
         const data = await response.json();
 
         if (data.status === "success") {
-            statusDiv.textContent = "";
-            alert("Upload finished !");
+            showStatus("Upload completed!", "success");
+            jarFile.value = "";
+            alert("JAR file uploaded successfully!");
         } else {
-            statusDiv.textContent = "Error : " + data.message;
-            alert("Erreur : " + data.message);
+            showStatus("Error: " + data.message, "error");
+            alert("Error: " + data.message);
         }
 
     } catch (err) {
-        statusDiv.textContent = "Error : " + err;
-        alert("Network Error.");
+        showStatus("Network error", "error");
+        alert("Network error: " + err.message);
     }
+}
 
-});
+function showStatus(message, type) {
+    statusDiv.textContent = message;
+    statusDiv.className = type;
+
+    if (type === "success") {
+        setTimeout(() => {
+            statusDiv.textContent = "";
+            statusDiv.className = "";
+        }, 3000);
+    }
+}

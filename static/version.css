@@ -1,54 +1,98 @@
-        input, button {
-            margin: 5px;
-            padding: 10px 18px;
-            font-size: 16px;
-            background: white;
-            color: #2563eb;
-            border: 2px solid #2563eb;
-            border-radius: 6px;
-            transition: 0.2s;
-        }
-        #versiontext {
-            left: 50%;
-            top: 34%;
-            position: absolute;
-            transform: translate(-50%, -50%);
-        }
-        #versiondownloader {
-            left: 50%;
-            top: 40%;
-            position: absolute;
-            transform: translate(-50%, -50%);
-        }
-        #customjar {
-            left: 50%;
-            top: 55%;
-            position: absolute;
-            transform: translate(-50%, -50%);
-        }
-        button {
-            cursor: pointer;
-        }
-        #status {
-            margin-top: 20px;
-            font-weight: bold;
-        }
-        #popup {
-            font-family: 'fredoka', sans-serif;
-            z-index: 3;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: #fff;
-            font-size: 18px;
-            flex-direction: column;
-            display: none;
-        }
-        #popup button {
-            margin-top: 20px;
-            padding: 10px 20px;
-        }
+#versiontext {
+    left: 50%;
+    top: 5%;
+    position: absolute;
+    transform: translate(-50%, 0);
+    text-align: center;
+}
+
+#versionsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+    padding: 20px;
+    margin-top: 80px;
+    margin-left: 15%;
+}
+
+.version-block {
+    border-radius: 6px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    background: white;
+    border: 2px solid #fbfbfc;
+    background-color: rgba(255, 255, 255, 0.216);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    color: white;
+    transition: 0.2s;
+}
+
+.version-block:hover {
+    background-color: rgba(255, 255, 255, 0.389);
+}
+
+#uploadJarBlock {
+    border-radius: 6px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    background: white;
+    border: 2px solid #fbfbfc;
+    background-color: rgba(255, 255, 255, 0.216);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    color: white;
+    transition: 0.2s;
+}
+
+#uploadJarBlock:hover {
+    background-color: rgba(255, 255, 255, 0.389);
+}
+
+#status {
+    margin-top: 20px;
+    font-weight: bold;
+}
+
+#popup {
+    font-family: 'fredoka', sans-serif;
+    z-index: 3;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    font-size: 18px;
+    flex-direction: column;
+}
+
+#popup > div {
+    text-align: center;
+}
+
+#popup button {
+    margin: 10px 5px;
+    padding: 10px 20px;
+    cursor: pointer;
+    border: 2px solid #2563eb;
+    background: white;
+    color: #2563eb;
+    border-radius: 6px;
+    transition: 0.2s;
+}
+
+#popup button:hover {
+    background: #2563eb;
+    color: white;
+}
+
+#jarFile {
+    display: none;
+}

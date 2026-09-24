@@ -193,26 +193,65 @@ def console_command():
 def version_page():
     return render_template("version.html")
 
+@app.route("/get_versions", methods=["GET"])
+def get_versions():
+    """Endpoint pour obtenir la liste des versions disponibles"""
+    try:
+        json_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            "paper-versions.json"
+        )
+        
+        if not os.path.exists(json_path):
+            return jsonify({"status": "error", "message": "Fichier versions non trouvé"}), 404
+        
+        with open(json_path, "r", encoding="utf-8") as f:
+            paper_data = json.load(f)
+        
+        # Extraire les versions (adapté selon votre structure JSON)
+        versions = []
+        if isinstance(paper_data, dict):
+            # Si c'est un dict avec clé "versions"
+            if "versions" in paper_data:
+                versions = paper_data["versions"]
+            else:
+                # Sinon utiliser les clés comme versions
+                versions = list(paper_data.keys())
+        elif isinstance(paper_data, list):
+            versions = paper_data
+        
+        return jsonify({"status": "success", "versions": sorted(versions, reverse=True)})
+    
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 @app.route("/download_version", methods=["POST"])
 def download_version():
     data = request.json
+
+    if not isinstance(data, dict):
+        return jsonify({
+            "status": "error",
+            "message": "Invalid request data"
+        })
+
     version = data.get("version")
     force = data.get("force", False)
 
     if not version:
         return jsonify({
             "status": "error",
-            "message": "Version manquante"
+            "message": "Version missing"
         })
 
     if os.path.exists(server_path) and os.listdir(server_path) and not force:
         return jsonify({
             "status": "exists",
-            "message": "Attention, cela va supprimer votre monde et toutes ses données"
+            "message": "This will delete your world and all its data"
         })
 
     try:
-        # Charger paper-versions.json
+        # Load the Paper versions file
         json_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
             "paper-versions.json"
@@ -221,47 +260,88 @@ def download_version():
         with open(json_path, "r", encoding="utf-8") as f:
             paper_data = json.load(f)
 
-        # Récupérer directement le lien de téléchargement
-        versions = paper_data.get("versions", {})
-        jar_url = versions.get(version)
+        download_url = None
 
-        if not jar_url:
+        # Support a dictionary using versions as keys:
+        # {
+        #     "1.21.8": "https://..."
+        # }
+        if isinstance(paper_data, dict) and version in paper_data:
+            value = paper_data[version]
+
+            if isinstance(value, str):
+                download_url = value
+
+            elif isinstance(value, dict):
+                download_url = value.get("url")
+
+        # Support a dictionary containing a "versions" list:
+        # {
+        #     "versions": [
+        #         {
+        #             "version": "1.21.8",
+        #             "url": "https://..."
+        #         }
+        #     ]
+        # }
+        elif isinstance(paper_data, dict) and "versions" in paper_data:
+            versions = paper_data["versions"]
+
+            if isinstance(versions, list):
+                for v in versions:
+                    if isinstance(v, dict):
+                        if v.get("version") == version:
+                            download_url = v.get("url")
+                            break
+
+                    elif isinstance(v, str):
+                        if v == version:
+                            continue
+
+            elif isinstance(versions, dict):
+                value = versions.get(version)
+
+                if isinstance(value, str):
+                    download_url = value
+
+                elif isinstance(value, dict):
+                    download_url = value.get("url")
+
+        if not download_url:
             return jsonify({
                 "status": "error",
-                "message": f"Version invalide ou indisponible : {version}"
+                "message": f"Version {version} not found"
             })
 
-        # Supprimer l'ancien serveur
+        # Remove the existing server directory
         if os.path.exists(server_path):
             shutil.rmtree(server_path)
 
         os.makedirs(server_path, exist_ok=True)
 
-        # Télécharger le .jar
-        jar_path = os.path.join(server_path, "server.jar")
+        # Download the server JAR
+        response = requests.get(download_url, timeout=60)
+        response.raise_for_status()
 
-        r = requests.get(jar_url, stream=True)
-        r.raise_for_status()
+        # Save the downloaded JAR
+        server_jar = os.path.join(server_path, "server.jar")
 
-        with open(jar_path, "wb") as f:
-            for chunk in r.iter_content(chunk_size=8192):
-                if chunk:
-                    f.write(chunk)
+        with open(server_jar, "wb") as f:
+            f.write(response.content)
+
+        # Accept the Minecraft EULA when force is enabled
+        if force:
+            with open(eula_file, "w", encoding="utf-8") as f:
+                f.write("eula=true\n")
 
         return jsonify({
             "status": "success"
         })
 
-    except FileNotFoundError:
+    except requests.exceptions.RequestException as e:
         return jsonify({
             "status": "error",
-            "message": "Le fichier paper-versions.json est introuvable"
-        })
-
-    except requests.RequestException as e:
-        return jsonify({
-            "status": "error",
-            "message": f"Erreur lors du téléchargement : {str(e)}"
+            "message": f"Download error: {str(e)}"
         })
 
     except Exception as e:
@@ -270,19 +350,31 @@ def download_version():
             "message": str(e)
         })
 
+
 @app.route("/upload_jar", methods=["POST"])
 def upload_jar():
     if "file" not in request.files:
         return jsonify({"status": "error", "message": "Aucun fichier"})
+
     file = request.files["file"]
-    if file.filename == "" or not file.filename.endswith(".jar"):
-        return jsonify({"status": "error", "message": "Fichier invalide ou non .jar"})
-    if os.path.exists(server_path):
-        shutil.rmtree(server_path)
-    os.makedirs(server_path, exist_ok=True)
-    jar_path = os.path.join(server_path, "server.jar")
-    file.save(jar_path)
-    return jsonify({"status": "success"})
+
+    if not file.filename.endswith(".jar"):
+        return jsonify({"status": "error", "message": "Le fichier doit être un .jar"})
+
+    try:
+        if os.path.exists(server_path):
+            shutil.rmtree(server_path)
+
+        os.makedirs(server_path, exist_ok=True)
+        server_jar = os.path.join(server_path, "server.jar")
+        file.save(server_jar)
+
+        with open(eula_file, "w") as f:
+            f.write("eula=true\n")
+
+        return jsonify({"status": "success"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
 
 @app.route("/players")
 def players_page():
