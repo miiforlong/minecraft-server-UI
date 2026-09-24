@@ -58,10 +58,10 @@
     "1.12.2": "https://fill-data.papermc.io/v1/objects/3a2041807f492dcdc34ebb324a287414946e3e05ec3df6fd03f5b5f7d9afc210/paper-1.12.2-1620.jar",
     "1.12.1": "https://fill-data.papermc.io/v1/objects/dba2219d674ad85e4ef2c41931d34b6fa4be75a887973ecaaf286727a03812da/paper-1.12.1-1204.jar",
     "1.12": "https://fill-data.papermc.io/v1/objects/1e7e88a2ed6f2b70fa3f6ec6611373458c5d72b2a8707e60921df601c791e60e/paper-1.12-1169.jar",
-    "1.11.2": "https://fill-data.papermc.io/v1/objects/3d0f40ec1f9630dfdbafa626cc20c266d7fb90fc22583dc1b995e7fbfb76830d/paper-1.11.2-1106.jar",
-    "1.10.2": "https://fill-data.papermc.io/v1/objects/83354d24a22b6265e76c089b3d17a568abb446c0ccd12c2452f5e148412b16c2/paper-1.10.2-918.jar",
-    "1.9.4": "https://fill-data.papermc.io/v1/objects/15a5821ddeacc596432c3fbf24262a2d264f556060ecd6f1838fb01ab5629a81/paper-1.9.4-775.jar",
-    "1.8.8": "https://fill-data.papermc.io/v1/objects/7ff6d2cec671ef0d95b3723b5c92890118fb882d73b7f8fa0a2cd31d97c55f86/paper-1.8.8-445.jar",
-    "1.7.10": "https://fill-data.papermc.io/v1/objects/33772078d92e9dbb027602da016524ef29af5b4c12eaddac1fe2465b01108185/paper-1.7.10-2025.jar"
+    "1.11.2": "https://miiforlong.github.io/mc-server-versions/paper-1.11.2.jar",
+    "1.10.2": "https://miiforlong.github.io/mc-server-versions/paper-1.10.2.jar",
+    "1.9.4": "https://miiforlong.github.io/mc-server-versions/paper-1.9.4.jar",
+    "1.8.8": "https://miiforlong.github.io/mc-server-versions/paper-1.8.8.jar",
+    "1.7.10": "https://miiforlong.github.io/mc-server-versions/paper-1.7.10.jar"
   }
 }
